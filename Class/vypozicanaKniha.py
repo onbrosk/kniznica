@@ -7,6 +7,8 @@ class VypozicanaKniha:
         self.datum_vypozicania = datum_vypozicania
         self.datum_vratenia = datum_vratenia
         self.kniha.je_vypozicana = True
+    def __str__(self):
+        return f"{self.kniha.nazov} od {self.kniha.autor}, vypožičaná dňa {self.datum_vypozicania} a vrátená dňa {self.datum_vratenia}"
     def vratit(self):
         self.kniha.je_vypozicana = False
         print(f'Kniha {self.kniha.nazov} bola vrátená do knižnice.')

@@ -31,9 +31,6 @@ class Kniha:
         
     def ziskaj_data(self):
         return [self.nazov, self.autor, self.rok_vydania, self.zaner, self.jazyk, self.poskodenie, self.je_vypozicana, self.isbn]
-
+  
     def __str__(self):
         return f"{self.nazov} od {self.autor}, vydaná v roku {self.rok_vydania}"
-
-kniha1 = Kniha("Cudzinec", "Albert Camus", "2008", "Filozofický román", 'slovenský', 'stredné', False, "978-0451524935")
-kniha2 = Kniha("Cudzinesdsdc", "Albert Camusss", "2008", "Filozofický román", 'slovenský', 'stredné', False, "978-0451524935")
