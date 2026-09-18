@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from main_window import MainWindow
+from ui.main_window import MainWindow
+from backend import knihy
 
 
 def main():
@@ -10,7 +11,8 @@ def main():
 
     window = MainWindow()
     window.show()
-
+    for kniha in knihy:
+        print(kniha.ziskaj_data())
     sys.exit(app.exec())
 
 

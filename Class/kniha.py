@@ -3,7 +3,7 @@ class Kniha:
         self.nazov = nazov
         self.autor = autor
         self.rok_vydania = rok_vydania
-        self.zanre = zaner
+        self.zaner = zaner
         self.jazyk = jazyk
         self.poskodenie = poskodenie
         self.je_vypozicana = je_vypozicana
@@ -17,7 +17,7 @@ class Kniha:
         self.nazov = input("Zadajte nový názov knihy: ")
         self.autor = input("Zadajte nového autora knihy: ")
         self.rok_vydania = input("Zadajte nový rok vydania knihy: ")
-        self.zanre = input("Zadajte nový žáner knihy: ")
+        self.zaner = input("Zadajte nový žáner knihy: ")
         self.jazyk = input("Zadajte nový jazyk knihy: ")
         self.poskodenie = input("Zadajte nové poškodenie knihy (True/False): ")
         self.je_vypozicana = input("Zadajte, či je kniha vypožičaná (True/False): ")
