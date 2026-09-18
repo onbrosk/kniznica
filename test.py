@@ -1,1 +1,0 @@
-print('funguje to')
