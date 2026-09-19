@@ -1,0 +1,30 @@
+[
+	{
+		"id": 1,
+		"meno": "Ján",
+		"priezvisko": "Novák",
+		"datum_narodenia": "1990-01-01",
+		"koniec_clenstva": "2027-12-31"
+	},
+	{
+		"id": 2,
+		"meno": "Eva",
+		"priezvisko": "Kováčová",
+		"datum_narodenia": "1985-05-12",
+		"koniec_clenstva": "2027-12-31"
+	},
+	{
+		"id": 3,
+		"meno": "Martin",
+		"priezvisko": "Horváth",
+		"datum_narodenia": "1998-09-23",
+		"koniec_clenstva": "2027-12-31"
+	},
+	{
+		"id": 4,
+		"meno": "Lucia",
+		"priezvisko": "Šimková",
+		"datum_narodenia": "2001-03-18",
+		"koniec_clenstva": "2027-12-31"
+	}
+]

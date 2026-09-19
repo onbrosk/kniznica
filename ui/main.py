@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from main_window import MainWindow
-
+from Class.kniha import Kniha
 
 def main():
     app = QApplication(sys.argv)

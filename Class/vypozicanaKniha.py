@@ -1,9 +1,11 @@
 import json
 import datetime 
 
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 class VypozicanaKniha:
-    def __init__(self, kniha, datum_vypozicania, datum_vratenia):
+    def __init__(self, kniha: isinstance, clen: isinstance, datum_vypozicania, datum_vratenia ):
         self.kniha = kniha
+        self.clen = clen
         self.datum_vypozicania = datum_vypozicania
         self.datum_vratenia = datum_vratenia
         self.kniha.je_vypozicana = True
@@ -12,7 +14,8 @@ class VypozicanaKniha:
     def vratit(self):
         self.kniha.je_vypozicana = False
         print(f'Kniha {self.kniha.nazov} bola vrátená do knižnice.')
-        log = {'kniha': self.kniha.nazov, 'datum_vypozicania': self.datum_vypozicania, 'datum_vratenia': self.datum_vratenia, 'vratena': datetime.now().strftime("%Y-%m-%d %H:%M:%S") }
-        with open('data.json', 'w') as f:
+        log = {'kniha': self.kniha.nazov, 'kniha_id': self.kniha.id, 'clen': f'{self.clen.meno} {self.clen.priezvisko}', 'datum_vypozicania': self.datum_vypozicania, 'datum_vratenia': self.datum_vratenia, 'vratena': timestamp}
+        with open('data.json', 'w',  encoding='utf-8') as f:
           json.dump(log, f)
+          f.close()
         del self

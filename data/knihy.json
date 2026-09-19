@@ -1,0 +1,46 @@
+[
+  { 
+    "id": 1,
+    "nazov": "Cudzinec",
+    "autor": "Albert Camus",
+    "rok_vydania": "2008",
+    "zaner": "Filozofický román",
+    "jazyk": "slovenský",
+    "poskodenie": "stredné",
+    "je_vypozicana": false,
+    "isbn": "978-0451524935"
+  },
+  {
+    "id": 2,
+    "nazov": "Malý princ",
+    "autor": "Antoine de Saint-Exupéry",
+    "rok_vydania": "1943",
+    "zaner": "Novela",
+    "jazyk": "slovenský",
+    "poskodenie": "žiadne",
+    "je_vypozicana": false,
+    "isbn": "978-8081030123"
+  },
+  {
+    "id": 3,
+    "nazov": "1984",
+    "autor": "George Orwell",
+    "rok_vydania": "1949",
+    "zaner": "Dystopický román",
+    "jazyk": "slovenský",
+    "poskodenie": "ľahké",
+    "je_vypozicana": false,
+    "isbn": "978-0141036144"
+  },
+  {
+    "id": 4,
+    "nazov": "Pýcha a predsudok",
+    "autor": "Jane Austen",
+    "rok_vydania": "1813",
+    "zaner": "Román",
+    "jazyk": "slovenský",
+    "poskodenie": "žiadne",
+    "je_vypozicana": false,
+    "isbn": "978-0141439518"
+  }
+]

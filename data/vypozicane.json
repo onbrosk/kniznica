@@ -1,0 +1,26 @@
+[
+  {
+    "kniha_id": 1,
+    "clen_id": 1,
+    "datum_vypozicania": "2026-09-01",
+    "datum_vratenia": "2026-09-15"
+  },
+  {
+    "kniha_id": 2,
+    "clen_id": 2,
+    "datum_vypozicania": "2026-09-03",
+    "datum_vratenia": "2026-09-18"
+  },
+  {
+    "kniha_id": 3,
+    "clen_id": 3,
+    "datum_vypozicania": "2026-09-05",
+    "datum_vratenia": "2026-09-20"
+  },
+  {
+    "kniha_id": 4,
+    "clen_id": 4,
+    "datum_vypozicania": "2026-09-07",
+    "datum_vratenia": "2026-09-22"
+  }
+]
