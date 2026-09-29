@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
+from backend import najdi_knihu
 
 
 class MainWindow(QMainWindow):
@@ -70,6 +71,29 @@ class MainWindow(QMainWindow):
         self.search_result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.search_result_label)
 
+        # Results list
+        self.results_list = QListWidget()
+        self.results_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 14px;
+                color: black;
+                background-color: #f9f9f9;
+            }
+            QListWidget::item {
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            QListWidget::item:hover {
+                background-color: #e8e8e8;
+            }
+            QListWidget::item:selected {
+                background-color: #d0d0d0;
+            }
+        """)
+        layout.addWidget(self.results_list)
+
         layout.addStretch()
         central_widget.setLayout(layout)
 
@@ -78,10 +102,20 @@ class MainWindow(QMainWindow):
 
     def search_books(self):
         query = self.search_input.text().strip()
-        if query:
-            self.search_result_label.setText(f"Searching for: {query}")
-        elif query == "":
+        if not query:
             self.search_result_label.setText("Search query is empty. Please enter a search term.")
+            self.results_list.clear()
+            return
+
+        results = najdi_knihu(query)
+        self.results_list.clear()
+
+        if results:
+            self.search_result_label.setText(f"Found {len(results)} result(s) for: \"{query}\"")
+            for kniha in results:
+                data = kniha.ziskaj_data()
+                item_text = f"{data[1]} — {data[2]} ({data[3]}) | Žáner: {data[4]} | Jazyk: {data[5]} | ISBN: {data[8]}"
+                item = QListWidgetItem(item_text)
+                self.results_list.addItem(item)
         else:
-            self.search_input.setFocus()
-            self.search_result_label.setText("")
+            self.search_result_label.setText(f"No results found for: \"{query}\"")
