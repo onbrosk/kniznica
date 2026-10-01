@@ -1,6 +1,6 @@
 import json
-from Class.Kniha import Kniha
-from Class.VypozicanaKniha import VypozicanaKniha
+from Class.kniha import Kniha
+from Class.vypozicanaKniha import VypozicanaKniha
 from Class.Clen import Clen
 
 
@@ -33,6 +33,46 @@ def najdi_podla_id(id_hodnota, array):
         except AttributeError:
             continue
     return None
+
+def uloz_knihy():
+    with open('data/knihy.json', 'w', encoding='utf-8') as f:
+        json.dump(
+            [
+                {
+                    'id': kniha.id,
+                    'nazov': kniha.nazov,
+                    'autor': kniha.autor,
+                    'rok_vydania': kniha.rok_vydania,
+                    'zaner': kniha.zaner,
+                    'jazyk': kniha.jazyk,
+                    'poskodenie': kniha.poskodenie,
+                    'je_vypozicana': kniha.je_vypozicana,
+                    'isbn': kniha.isbn,
+                }
+                for kniha in knihy
+            ],
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+def uloz_clenov():
+    with open('data/clenovia.json', 'w', encoding='utf-8') as f:
+        json.dump(
+            [
+                {
+                    'id': clen.id,
+                    'meno': clen.meno,
+                    'priezvisko': clen.priezvisko,
+                    'datum_narodenia': str(clen.datum_narodenia),
+                    'koniec_clenstva': str(clen.koniec_clenstva),
+                }
+                for clen in clenovia
+            ],
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
 
 def nacitaj_z_uloziska():
     global knihy

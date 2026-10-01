@@ -1,4 +1,5 @@
 import sys
+from datetime import date
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -12,11 +13,18 @@ from PySide6.QtWidgets import (
     QLabel,
     QHeaderView,
     QTabWidget,
+    QDialog,
+    QFormLayout,
+    QDialogButtonBox,
+    QCheckBox,
+    QMessageBox,
 )
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt
 
-from backend import knihy, clenovia, najdi_knihu
+from backend import knihy, clenovia, najdi_knihu, uloz_knihy, uloz_clenov
+from Class.kniha import Kniha
+from Class.Clen import Clen
 
 
 class MainWindow(QMainWindow):
@@ -51,8 +59,12 @@ class MainWindow(QMainWindow):
         self.book_search_btn = QPushButton("Hľadať")
         self.book_search_btn.clicked.connect(self.search_books)
 
+        self.btn_add_book = QPushButton("Pridať")
+        self.btn_add_book.clicked.connect(self.add_book)
+
         search_layout.addWidget(self.book_search_input)
         search_layout.addWidget(self.book_search_btn)
+        search_layout.addWidget(self.btn_add_book)
         books_layout.addLayout(search_layout)
 
         self.book_table = QTableView()
@@ -87,8 +99,12 @@ class MainWindow(QMainWindow):
         self.member_search_btn = QPushButton("Hľadať")
         self.member_search_btn.clicked.connect(self.search_members)
 
+        self.btn_add_member = QPushButton("Pridať")
+        self.btn_add_member.clicked.connect(self.add_member)
+
         members_search_layout.addWidget(self.member_search_input)
         members_search_layout.addWidget(self.member_search_btn)
+        members_search_layout.addWidget(self.btn_add_member)
         members_layout.addLayout(members_search_layout)
 
         self.member_table = QTableView()
@@ -129,6 +145,7 @@ class MainWindow(QMainWindow):
         self.btn_layout = QHBoxLayout(self.btn_container)
 
         self.btn_edit = QPushButton("Upraviť")
+        self.btn_edit.clicked.connect(self.edit_book)
         self.btn_delete = QPushButton("Zmazať")
         self.btn_test = QPushButton("Test")
 
@@ -252,6 +269,84 @@ class MainWindow(QMainWindow):
         self.details_group.show()
         self.btn_container.show()
 
+    def open_book_dialog(self, book=None):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Upraviť knihu" if book else "Pridať knihu")
+        form = QFormLayout(dialog)
+
+        fields = {}
+        values = {
+            "Názov": book.nazov if book else "",
+            "Autor": book.autor if book else "",
+            "Rok vydania": book.rok_vydania if book else "",
+            "Žáner": book.zaner if book else "",
+            "Jazyk": book.jazyk if book else "",
+            "Poškodenie": book.poskodenie if book else "",
+            "ISBN": book.isbn if book else "",
+        }
+
+        for label, value in values.items():
+            field = QLineEdit(str(value))
+            form.addRow(label, field)
+            fields[label] = field
+
+        borrowed = QCheckBox()
+        borrowed.setChecked(bool(book.je_vypozicana) if book else False)
+        form.addRow("Vypožičaná", borrowed)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        if not fields["Názov"].text().strip() or not fields["Autor"].text().strip():
+            QMessageBox.warning(dialog, "Neplatné údaje", "Názov a autor sú povinné.")
+            return
+
+        data = {
+            "nazov": fields["Názov"].text().strip(),
+            "autor": fields["Autor"].text().strip(),
+            "rok_vydania": fields["Rok vydania"].text().strip(),
+            "zaner": fields["Žáner"].text().strip(),
+            "jazyk": fields["Jazyk"].text().strip(),
+            "poskodenie": fields["Poškodenie"].text().strip(),
+            "je_vypozicana": borrowed.isChecked(),
+            "isbn": fields["ISBN"].text().strip(),
+        }
+
+        if book:
+            for key, value in data.items():
+                setattr(book, key, value)
+        else:
+            next_id = max((int(item.id) for item in knihy), default=0) + 1
+            knihy.append(Kniha(next_id, **data))
+
+        try:
+            uloz_knihy()
+        except OSError as error:
+            QMessageBox.critical(self, "Chyba ukladania", f"Knihu sa nepodarilo uložiť: {error}")
+            return
+
+        self.search_books() if self.book_search_input.text().strip() else self.show_all_books()
+        self.details_group.hide()
+        self.btn_container.hide()
+
+    def add_book(self):
+        self.open_book_dialog()
+
+    def edit_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Upraviť knihu", "Najprv vyberte knihu.")
+            return
+        self.open_book_dialog(self._book_results[row])
+
     # =========================================================
     # ČLENOVIA
     # =========================================================
@@ -312,3 +407,68 @@ class MainWindow(QMainWindow):
                 QStandardItem(str(member.datum_narodenia)),
                 QStandardItem(str(member.koniec_clenstva)),
             ])
+
+    def add_member(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Pridať člena")
+        form = QFormLayout(dialog)
+
+        fields = {}
+        for label, placeholder in (
+            ("Meno", "Meno"),
+            ("Priezvisko", "Priezvisko"),
+            ("Dátum narodenia", "YYYY-MM-DD"),
+            ("Koniec členstva", "YYYY-MM-DD"),
+        ):
+            field = QLineEdit()
+            field.setPlaceholderText(placeholder)
+            form.addRow(label, field)
+            fields[label] = field
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        meno = fields["Meno"].text().strip()
+        priezvisko = fields["Priezvisko"].text().strip()
+        datum_narodenia = fields["Dátum narodenia"].text().strip()
+        koniec_clenstva = fields["Koniec členstva"].text().strip()
+
+        if not meno or not priezvisko:
+            QMessageBox.warning(dialog, "Neplatné údaje", "Meno a priezvisko sú povinné.")
+            return
+
+        try:
+            date.fromisoformat(datum_narodenia)
+            date.fromisoformat(koniec_clenstva)
+        except ValueError:
+            QMessageBox.warning(
+                dialog,
+                "Neplatný dátum",
+                "Zadajte oba dátumy vo formáte YYYY-MM-DD.",
+            )
+            return
+
+        next_id = max((int(member.id) for member in clenovia), default=0) + 1
+        clenovia.append(
+            Clen(next_id, meno, priezvisko, datum_narodenia, koniec_clenstva)
+        )
+
+        try:
+            uloz_clenov()
+        except OSError as error:
+            clenovia.pop()
+            QMessageBox.critical(
+                self,
+                "Chyba ukladania",
+                f"Člena sa nepodarilo uložiť: {error}",
+            )
+            return
+
+        self.search_members() if self.member_search_input.text().strip() else self.show_all_members()
