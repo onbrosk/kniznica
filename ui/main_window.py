@@ -505,6 +505,121 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Upraviť knihu", "Najprv vyberte knihu.")
             return
         self.open_book_dialog(self._book_results[row])
+    def lend_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Vypožičať knihu", "Najprv vyberte knihu.")
+            return
+
+        book = self._book_results[row]
+
+        if book.je_vypozicana:
+            QMessageBox.warning(self, "Vypožičať knihu", "Kniha je už vypožičaná.")
+            return
+
+        member_id = self.open_lend_book_dialog(book)
+        if member_id is None:
+            return
+
+        member = najdi_podla_id(member_id, clenovia)
+        if member is None:
+            QMessageBox.warning(self, "Neplatný člen", "Člena s týmto ID sa nepodarilo nájsť.")
+            return
+
+        loan_date = date.today()
+        due_date = loan_date + timedelta(days=14)
+        loan = VypozicanaKniha(
+            book,
+            member,
+            loan_date.isoformat(),
+            due_date.isoformat(),
+        )
+        vypozicane.append(loan)
+
+        try:
+            uloz_vypozicane()
+            uloz_knihy()
+        except OSError as error:
+            vypozicane.remove(loan)
+            book.je_vypozicana = False
+            QMessageBox.critical(self, "Chyba ukladania", f"Výpožičku sa nepodarilo uložiť: {error}")
+            return
+
+        self.search_books() if self.book_search_input.text().strip() else self.show_all_books()
+        self.show_all_records()
+        self.details_group.hide()
+        self.btn_container.hide()
+        
+    def return_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Vrátiť knihu", "Najprv vyberte knihu.")
+            return
+
+        book = self._book_results[row]
+
+        if not book.je_vypozicana:
+            QMessageBox.warning(self, "Vrátiť knihu", "Kniha nie je vypožičaná.")
+            return
+
+        loan = next(
+            (
+                item for item in vypozicane
+                if item.kniha.id == book.id and item.datum_realneho_vratenia is None
+            ),
+            None,
+        )
+        if loan is None:
+            QMessageBox.warning(self, "Vrátiť knihu", "Nenašla sa aktívna výpožička tejto knihy.")
+            return
+
+        previous_return_date = loan.datum_realneho_vratenia
+        loan.vratit()
+        try:
+            uloz_vypozicane()
+            uloz_knihy()
+        except OSError as error:
+            loan.datum_realneho_vratenia = previous_return_date
+            book.je_vypozicana = True
+            QMessageBox.critical(self, "Chyba ukladania", f"Knihu sa nepodarilo uložiť: {error}")
+            return
+
+        self.search_books() if self.book_search_input.text().strip() else self.show_all_books()
+        self.show_all_records()
+        self.details_group.hide()
+        self.btn_container.hide()
+
+    def delete_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Zmazať knihu", "Najprv vyberte knihu.")
+            return
+
+        book = self._book_results[row]
+        book_index = knihy.index(book)
+        book.odobrat()
+        knihy.pop(book_index)
+
+        try:
+            uloz_knihy()
+        except OSError as error:
+            knihy.insert(book_index, book)
+            QMessageBox.critical(
+                self,
+                "Chyba ukladania",
+                f"Knihu sa nepodarilo zmazať: {error}",
+            )
+            return
+
+        if self.book_search_input.text().strip():
+            self.search_books()
+        else:
+            self.show_all_books()
+        self.details_group.hide()
+        self.btn_container.hide()
 
     # =========================================================
     # ČLENOVIA
