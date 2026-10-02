@@ -1,6 +1,6 @@
 import json
-from Class.kniha import Kniha
-from Class.vypozicanaKniha import VypozicanaKniha
+from Class.Kniha import Kniha
+from Class.VypozicanaKniha import VypozicanaKniha
 from Class.Clen import Clen
 
 
@@ -74,6 +74,24 @@ def uloz_clenov():
             indent=2,
         )
 
+def uloz_vypozicane():
+    with open('data/vypozicane.json', 'w', encoding='utf-8') as f:
+        json.dump(
+            [
+                {
+                    'kniha_id': vypozicana.kniha.id,
+                    'clen_id': vypozicana.clen.id,
+                    'datum_vypozicania': str(vypozicana.datum_vypozicania),
+                    'datum_vratenia': str(vypozicana.datum_vratenia),
+                    'datum_realneho_vratenia': vypozicana.datum_realneho_vratenia,
+                }
+                for vypozicana in vypozicane
+            ],
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+
 def nacitaj_z_uloziska():
     global knihy
     global clenovia
@@ -98,8 +116,11 @@ def nacitaj_z_uloziska():
             for clen in ulozeny_clenovia
         ]
 
-    with open('data/vypozicane.json', 'r', encoding='utf-8') as f:
-        ulozene_vypozicane = json.load(f)
+    try:
+        with open('data/vypozicane.json', 'r', encoding='utf-8') as f:
+            ulozene_vypozicane = json.load(f)
+    except FileNotFoundError:
+        ulozene_vypozicane = []
 
     if ulozene_vypozicane:
         vypozicane = []
@@ -111,7 +132,14 @@ def nacitaj_z_uloziska():
                 continue
 
             vypozicane.append(
-                VypozicanaKniha(kniha_obj, clen_obj, vypozicana['datum_vypozicania'], vypozicana['datum_vratenia'])
+                VypozicanaKniha(
+                    kniha_obj,
+                    clen_obj,
+                    vypozicana['datum_vypozicania'],
+                    vypozicana['datum_vratenia'],
+                    vypozicana.get('datum_realneho_vratenia'),
+                    zapis_do_logu=False,
+                )
             )
  
 nacitaj_z_uloziska()

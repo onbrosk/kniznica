@@ -1,5 +1,6 @@
+import json
 import sys
-from datetime import date
+from datetime import date, timedelta
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -22,9 +23,19 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt
 
-from backend import knihy, clenovia, najdi_knihu, uloz_knihy, uloz_clenov
-from Class.kniha import Kniha
+from backend import (
+    knihy,
+    clenovia,
+    vypozicane,
+    najdi_knihu,
+    najdi_podla_id,
+    uloz_knihy,
+    uloz_clenov,
+    uloz_vypozicane,
+)
+from Class.Kniha import Kniha
 from Class.Clen import Clen
+from Class.VypozicanaKniha import VypozicanaKniha
 
 
 class MainWindow(QMainWindow):
@@ -123,6 +134,44 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.members_tab, "Členovia")
 
         # =========================
+        # ZÁLOŽKA ZÁZNAMY
+        # =========================
+        self.records_tab = QWidget()
+        records_layout = QVBoxLayout(self.records_tab)
+
+        records_search_layout = QHBoxLayout()
+
+        self.record_search_input = QLineEdit()
+        self.record_search_input.setPlaceholderText(
+            "Hľadaj záznam podľa knihy, člena alebo ID..."
+        )
+
+        self.record_search_btn = QPushButton("Hľadať")
+        self.record_search_btn.clicked.connect(self.search_records)
+
+        self.record_active_only = QCheckBox("Iba aktuálne vypožičané")
+        self.record_active_only.stateChanged.connect(self.search_records)
+
+        records_search_layout.addWidget(self.record_search_input)
+        records_search_layout.addWidget(self.record_search_btn)
+        records_search_layout.addWidget(self.record_active_only)
+        records_layout.addLayout(records_search_layout)
+
+        self.record_table = QTableView()
+        self.record_model = QStandardItemModel()
+        self.record_table.setModel(self.record_model)
+
+        self.record_table.setSelectionBehavior(QTableView.SelectRows)
+        self.record_table.setSelectionMode(QTableView.SingleSelection)
+        self.record_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.Stretch
+        )
+
+        records_layout.addWidget(self.record_table)
+
+        self.tabs.addTab(self.records_tab, "Záznamy")
+
+        # =========================
         # DETAIL KNIHY
         # =========================
         self.details_group = QGroupBox("Detaily knihy")
@@ -147,11 +196,16 @@ class MainWindow(QMainWindow):
         self.btn_edit = QPushButton("Upraviť")
         self.btn_edit.clicked.connect(self.edit_book)
         self.btn_delete = QPushButton("Zmazať")
-        self.btn_test = QPushButton("Test")
+        self.btn_lend = QPushButton("Vypožičať")
+        self.btn_lend.clicked.connect(self.lend_book)
+        self.btn_return = QPushButton("Vrátiť")
+        self.btn_return.clicked.connect(self.return_book)
+
 
         self.btn_layout.addWidget(self.btn_edit)
         self.btn_layout.addWidget(self.btn_delete)
-        self.btn_layout.addWidget(self.btn_test)
+        self.btn_layout.addWidget(self.btn_lend)
+        self.btn_layout.addWidget(self.btn_return)
 
         main_layout.addWidget(self.btn_container)
 
@@ -162,9 +216,78 @@ class MainWindow(QMainWindow):
         # vieme získať skutočné údaje o knihe.
         self._book_results = []
 
-        # Na začiatku zobrazíme všetky knihy a všetkých členov.
+        # Na začiatku zobrazíme všetky knihy, členov a záznamy.
         self.show_all_books()
         self.show_all_members()
+        self.show_all_records()
+
+    # =========================================================
+    # ZÁZNAMY
+    # =========================================================
+
+    def show_all_records(self):
+        self.search_records()
+
+    def search_records(self):
+        self.record_model.clear()
+
+        headers = [
+            "Kniha",
+            "ID knihy",
+            "Člen",
+            "ID člena",
+            "Dátum vypožičania",
+            "Dátum vrátenia",
+            "Dátum skutočného vrátenia",
+            "Vytvorené",
+        ]
+
+        self.record_model.setHorizontalHeaderLabels(headers)
+
+        try:
+            with open("data/logs/vypozicane.json", "r", encoding="utf-8") as file:
+                zaznamy = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            zaznamy = []
+
+        if not isinstance(zaznamy, list):
+            zaznamy = [zaznamy] if zaznamy else []
+
+        query = self.record_search_input.text().strip().lower()
+        active_only = self.record_active_only.isChecked()
+
+        for zaznam in zaznamy:
+            if not isinstance(zaznam, dict):
+                continue
+
+            has_return = str(zaznam.get("datum_realneho_vratenia") or "").strip()
+            is_active = not has_return
+
+            if active_only and not is_active:
+                continue
+
+            if query:
+                haystack = " ".join([
+                    str(zaznam.get("kniha", "")),
+                    str(zaznam.get("kniha_id", "")),
+                    str(zaznam.get("clen", "")),
+                    str(zaznam.get("clen_id", "")),
+                    str(zaznam.get("datum_vypozicania", "")),
+                    str(zaznam.get("datum_vratenia", "")),
+                ]).lower()
+                if query not in haystack:
+                    continue
+
+            self.record_model.appendRow([
+                QStandardItem(str(zaznam.get("kniha", ""))),
+                QStandardItem(str(zaznam.get("kniha_id", ""))),
+                QStandardItem(str(zaznam.get("clen", ""))),
+                QStandardItem(str(zaznam.get("clen_id", ""))),
+                QStandardItem(str(zaznam.get("datum_vypozicania", ""))),
+                QStandardItem(str(zaznam.get("datum_vratenia", ""))),
+                QStandardItem(str(zaznam.get("datum_realneho_vratenia", ""))),
+                QStandardItem(str(zaznam.get("vytvorene", ""))),
+            ])
 
     # =========================================================
     # KNIHY
@@ -269,6 +392,32 @@ class MainWindow(QMainWindow):
         self.details_group.show()
         self.btn_container.show()
 
+    def open_lend_book_dialog(self, book):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Vypožičať knihu")
+        form = QFormLayout(dialog)
+
+        member_input = QLineEdit()
+        member_input.setPlaceholderText("Zadajte ID člena")
+        form.addRow("ID člena:", member_input)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+
+        if dialog.exec() != QDialog.Accepted:
+            return None
+
+        member_id = member_input.text().strip()
+        if not member_id:
+            QMessageBox.warning(dialog, "Neplatné údaje", "ID člena je povinné.")
+            return None
+
+        return member_id
+
     def open_book_dialog(self, book=None):
         dialog = QDialog(self)
         dialog.setWindowTitle("Upraviť knihu" if book else "Pridať knihu")
@@ -346,7 +495,91 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Upraviť knihu", "Najprv vyberte knihu.")
             return
         self.open_book_dialog(self._book_results[row])
+    def lend_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Vypožičať knihu", "Najprv vyberte knihu.")
+            return
 
+        book = self._book_results[row]
+
+        if book.je_vypozicana:
+            QMessageBox.warning(self, "Vypožičať knihu", "Kniha je už vypožičaná.")
+            return
+
+        member_id = self.open_lend_book_dialog(book)
+        if member_id is None:
+            return
+
+        member = najdi_podla_id(member_id, clenovia)
+        if member is None:
+            QMessageBox.warning(self, "Neplatný člen", "Člena s týmto ID sa nepodarilo nájsť.")
+            return
+
+        loan_date = date.today()
+        due_date = loan_date + timedelta(days=14)
+        loan = VypozicanaKniha(
+            book,
+            member,
+            loan_date.isoformat(),
+            due_date.isoformat(),
+        )
+        vypozicane.append(loan)
+
+        try:
+            uloz_vypozicane()
+            uloz_knihy()
+        except OSError as error:
+            vypozicane.remove(loan)
+            book.je_vypozicana = False
+            QMessageBox.critical(self, "Chyba ukladania", f"Výpožičku sa nepodarilo uložiť: {error}")
+            return
+
+        self.search_books() if self.book_search_input.text().strip() else self.show_all_books()
+        self.show_all_records()
+        self.details_group.hide()
+        self.btn_container.hide()
+        
+    def return_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Vrátiť knihu", "Najprv vyberte knihu.")
+            return
+
+        book = self._book_results[row]
+
+        if not book.je_vypozicana:
+            QMessageBox.warning(self, "Vrátiť knihu", "Kniha nie je vypožičaná.")
+            return
+
+        loan = next(
+            (
+                item for item in vypozicane
+                if item.kniha.id == book.id and item.datum_realneho_vratenia is None
+            ),
+            None,
+        )
+        if loan is None:
+            QMessageBox.warning(self, "Vrátiť knihu", "Nenašla sa aktívna výpožička tejto knihy.")
+            return
+
+        previous_return_date = loan.datum_realneho_vratenia
+        loan.vratit()
+        try:
+            uloz_vypozicane()
+            uloz_knihy()
+        except OSError as error:
+            loan.datum_realneho_vratenia = previous_return_date
+            book.je_vypozicana = True
+            QMessageBox.critical(self, "Chyba ukladania", f"Knihu sa nepodarilo uložiť: {error}")
+            return
+
+        self.search_books() if self.book_search_input.text().strip() else self.show_all_books()
+        self.show_all_records()
+        self.details_group.hide()
+        self.btn_container.hide()
     # =========================================================
     # ČLENOVIA
     # =========================================================

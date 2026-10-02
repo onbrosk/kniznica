@@ -1,0 +1,22 @@
+[
+  {
+    "kniha": "Cudzinec",
+    "kniha_id": 1,
+    "clen": "Ján Novák",
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 11:10:31",
+    "vytvorene": "2026-10-02 11:06:02"
+  },
+  {
+    "kniha": "Malý princ",
+    "kniha_id": 2,
+    "clen": "Ján Novák",
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "",
+    "vytvorene": "2026-10-02 11:06:08"
+  }
+]

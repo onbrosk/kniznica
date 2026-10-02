@@ -1,5 +1,5 @@
 [
-  { 
+  {
     "id": 1,
     "nazov": "Cudzinec",
     "autor": "Albert Camus",
@@ -18,14 +18,14 @@
     "zaner": "Novela",
     "jazyk": "slovenský",
     "poskodenie": "žiadne",
-    "je_vypozicana": false,
+    "je_vypozicana": true,
     "isbn": "978-8081030123"
   },
   {
     "id": 3,
     "nazov": "1984",
     "autor": "George Orwell",
-    "rok_vydania": "1949",
+    "rok_vydania": "1950",
     "zaner": "Dystopický román",
     "jazyk": "slovenský",
     "poskodenie": "ľahké",

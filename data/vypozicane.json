@@ -1,26 +1,51 @@
 [
   {
-    "kniha_id": 1,
+    "kniha_id": 2,
     "clen_id": 1,
-    "datum_vypozicania": "2026-09-01",
-    "datum_vratenia": "2026-09-15"
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 08:33:02"
   },
   {
     "kniha_id": 2,
-    "clen_id": 2,
-    "datum_vypozicania": "2026-09-03",
-    "datum_vratenia": "2026-09-18"
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 08:39:43"
   },
   {
     "kniha_id": 3,
-    "clen_id": 3,
-    "datum_vypozicania": "2026-09-05",
-    "datum_vratenia": "2026-09-20"
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 08:40:27"
   },
   {
     "kniha_id": 4,
-    "clen_id": 4,
-    "datum_vypozicania": "2026-09-07",
-    "datum_vratenia": "2026-09-22"
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 08:39:52"
+  },
+  {
+    "kniha_id": 2,
+    "clen_id": 3,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 08:40:17"
+  },
+  {
+    "kniha_id": 1,
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": "2026-10-02 11:10:31"
+  },
+  {
+    "kniha_id": 2,
+    "clen_id": 1,
+    "datum_vypozicania": "2026-10-02",
+    "datum_vratenia": "2026-10-16",
+    "datum_realneho_vratenia": null
   }
 ]
