@@ -12,8 +12,7 @@ class Kniha:
 
     def odobrat(self):
         del self
-        print(f'Kniha {self.nazov} bola odobratá z knižnice.')
-
+        
     def aktualizovat(self):
         self.nazov = input("Zadajte nový názov knihy: ")
         self.autor = input("Zadajte nového autora knihy: ")

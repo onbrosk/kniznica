@@ -26,12 +26,5 @@
     "priezvisko": "Šimková",
     "datum_narodenia": "2001-03-18",
     "koniec_clenstva": "2027-12-31"
-  },
-  {
-    "id": 5,
-    "meno": "Peter",
-    "priezvisko": "Mrkvička",
-    "datum_narodenia": "2000-04-01",
-    "koniec_clenstva": "2028-12-31"
   }
 ]

@@ -101,10 +101,16 @@ class MainWindow(QMainWindow):
 
         self.btn_add_member = QPushButton("Pridať")
         self.btn_add_member.clicked.connect(self.add_member)
+        self.btn_edit_member = QPushButton("Upraviť")
+        self.btn_edit_member.clicked.connect(self.edit_member)
+        self.btn_delete_member = QPushButton("Zmazať")
+        self.btn_delete_member.clicked.connect(self.delete_member)
 
         members_search_layout.addWidget(self.member_search_input)
         members_search_layout.addWidget(self.member_search_btn)
         members_search_layout.addWidget(self.btn_add_member)
+        members_search_layout.addWidget(self.btn_edit_member)
+        members_search_layout.addWidget(self.btn_delete_member)
         members_layout.addLayout(members_search_layout)
 
         self.member_table = QTableView()
@@ -113,6 +119,7 @@ class MainWindow(QMainWindow):
 
         self.member_table.setSelectionBehavior(QTableView.SelectRows)
         self.member_table.setSelectionMode(QTableView.SingleSelection)
+        self.member_table.clicked.connect(self.on_member_selected)
 
         self.member_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch
@@ -147,6 +154,7 @@ class MainWindow(QMainWindow):
         self.btn_edit = QPushButton("Upraviť")
         self.btn_edit.clicked.connect(self.edit_book)
         self.btn_delete = QPushButton("Zmazať")
+        self.btn_delete.clicked.connect(self.delete_book)
         self.btn_test = QPushButton("Test")
 
         self.btn_layout.addWidget(self.btn_edit)
@@ -161,6 +169,7 @@ class MainWindow(QMainWindow):
         # Používame priamo objekty z backendu, takže pri kliknutí
         # vieme získať skutočné údaje o knihe.
         self._book_results = []
+        self._member_results = []
 
         # Na začiatku zobrazíme všetky knihy a všetkých členov.
         self.show_all_books()
@@ -265,6 +274,7 @@ class MainWindow(QMainWindow):
             f"ISBN: {book.isbn}"
         )
 
+        self.details_group.setTitle("Detaily knihy")
         self.details_label.setText(text)
         self.details_group.show()
         self.btn_container.show()
@@ -347,6 +357,36 @@ class MainWindow(QMainWindow):
             return
         self.open_book_dialog(self._book_results[row])
 
+    def delete_book(self):
+        index = self.book_table.currentIndex()
+        row = index.row()
+        if row < 0 or row >= len(self._book_results):
+            QMessageBox.information(self, "Zmazať knihu", "Najprv vyberte knihu.")
+            return
+
+        book = self._book_results[row]
+        book_index = knihy.index(book)
+        book.odobrat()
+        knihy.pop(book_index)
+
+        try:
+            uloz_knihy()
+        except OSError as error:
+            knihy.insert(book_index, book)
+            QMessageBox.critical(
+                self,
+                "Chyba ukladania",
+                f"Knihu sa nepodarilo zmazať: {error}",
+            )
+            return
+
+        if self.book_search_input.text().strip():
+            self.search_books()
+        else:
+            self.show_all_books()
+        self.details_group.hide()
+        self.btn_container.hide()
+
     # =========================================================
     # ČLENOVIA
     # =========================================================
@@ -364,7 +404,9 @@ class MainWindow(QMainWindow):
 
         self.member_model.setHorizontalHeaderLabels(headers)
 
-        for member in clenovia:
+        self._member_results = list(clenovia)
+
+        for member in self._member_results:
             self.member_model.appendRow([
                 QStandardItem(str(member.id)),
                 QStandardItem(str(member.meno)),
@@ -376,6 +418,8 @@ class MainWindow(QMainWindow):
     def search_members(self):
         query = self.member_search_input.text().strip().lower()
 
+        self.details_group.hide()
+        self.btn_container.hide()
         self.member_model.clear()
 
         headers = [
@@ -392,14 +436,14 @@ class MainWindow(QMainWindow):
             self.show_all_members()
             return
 
-        results = [
+        self._member_results = [
             member
             for member in clenovia
             if query in str(member.meno).lower()
             or query in str(member.priezvisko).lower()
         ]
 
-        for member in results:
+        for member in self._member_results:
             self.member_model.appendRow([
                 QStandardItem(str(member.id)),
                 QStandardItem(str(member.meno)),
@@ -408,19 +452,82 @@ class MainWindow(QMainWindow):
                 QStandardItem(str(member.koniec_clenstva)),
             ])
 
+    def on_member_selected(self, index):
+        row = index.row()
+        if row < 0 or row >= len(self._member_results):
+            return
+
+        self.show_member_detail(self._member_results[row])
+
+    def show_member_detail(self, member):
+        text = (
+            f"ID: {member.id}\n"
+            f"Meno: {member.meno}\n"
+            f"Priezvisko: {member.priezvisko}\n"
+            f"Dátum narodenia: {member.datum_narodenia}\n"
+            f"Koniec členstva: {member.koniec_clenstva}"
+        )
+
+        self.details_group.setTitle("Detaily člena")
+        self.details_label.setText(text)
+        self.details_group.show()
+        self.btn_container.hide()
+
     def add_member(self):
+        self.open_member_dialog()
+
+    def edit_member(self):
+        row = self.member_table.currentIndex().row()
+        if row < 0 or row >= len(self._member_results):
+            QMessageBox.information(self, "Upraviť člena", "Najprv vyberte člena.")
+            return
+        self.open_member_dialog(self._member_results[row])
+
+    def delete_member(self):
+        row = self.member_table.currentIndex().row()
+        if row < 0 or row >= len(self._member_results):
+            QMessageBox.information(self, "Zmazať člena", "Najprv vyberte člena.")
+            return
+
+        member = self._member_results[row]
+        member_index = clenovia.index(member)
+        clenovia.pop(member_index)
+
+        try:
+            uloz_clenov()
+        except OSError as error:
+            clenovia.insert(member_index, member)
+            QMessageBox.critical(
+                self,
+                "Chyba ukladania",
+                f"Člena sa nepodarilo zmazať: {error}",
+            )
+            return
+
+        self.search_members() if self.member_search_input.text().strip() else self.show_all_members()
+        self.details_group.hide()
+
+    def open_member_dialog(self, member=None):
         dialog = QDialog(self)
-        dialog.setWindowTitle("Pridať člena")
+        dialog.setWindowTitle("Upraviť člena" if member else "Pridať člena")
         form = QFormLayout(dialog)
 
         fields = {}
-        for label, placeholder in (
-            ("Meno", "Meno"),
-            ("Priezvisko", "Priezvisko"),
-            ("Dátum narodenia", "YYYY-MM-DD"),
-            ("Koniec členstva", "YYYY-MM-DD"),
+        for label, value, placeholder in (
+            ("Meno", member.meno if member else "", "Meno"),
+            ("Priezvisko", member.priezvisko if member else "", "Priezvisko"),
+            (
+                "Dátum narodenia",
+                member.datum_narodenia if member else "",
+                "YYYY-MM-DD",
+            ),
+            (
+                "Koniec členstva",
+                member.koniec_clenstva if member else "",
+                "YYYY-MM-DD",
+            ),
         ):
-            field = QLineEdit()
+            field = QLineEdit(str(value))
             field.setPlaceholderText(placeholder)
             form.addRow(label, field)
             fields[label] = field
@@ -455,15 +562,35 @@ class MainWindow(QMainWindow):
             )
             return
 
-        next_id = max((int(member.id) for member in clenovia), default=0) + 1
-        clenovia.append(
-            Clen(next_id, meno, priezvisko, datum_narodenia, koniec_clenstva)
-        )
+        original_values = None
+        if member:
+            original_values = (
+                member.meno,
+                member.priezvisko,
+                member.datum_narodenia,
+                member.koniec_clenstva,
+            )
+            member.meno = meno
+            member.priezvisko = priezvisko
+            member.datum_narodenia = datum_narodenia
+            member.koniec_clenstva = koniec_clenstva
+        else:
+            next_id = max((int(item.id) for item in clenovia), default=0) + 1
+            member = Clen(next_id, meno, priezvisko, datum_narodenia, koniec_clenstva)
+            clenovia.append(member)
 
         try:
             uloz_clenov()
         except OSError as error:
-            clenovia.pop()
+            if original_values is not None:
+                (
+                    member.meno,
+                    member.priezvisko,
+                    member.datum_narodenia,
+                    member.koniec_clenstva,
+                ) = original_values
+            else:
+                clenovia.remove(member)
             QMessageBox.critical(
                 self,
                 "Chyba ukladania",
@@ -472,3 +599,4 @@ class MainWindow(QMainWindow):
             return
 
         self.search_members() if self.member_search_input.text().strip() else self.show_all_members()
+        self.details_group.hide()
