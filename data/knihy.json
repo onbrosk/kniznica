@@ -10,6 +10,7 @@
     "je_vypozicana": false,
     "isbn": "978-0451524935"
   },
+
   {
     "id": 2,
     "nazov": "Malý princ",
@@ -29,7 +30,7 @@
     "zaner": "Dystopický román",
     "jazyk": "slovenský",
     "poskodenie": "ľahké",
-    "je_vypozicana": false,
+    "je_vypozicana": true,
     "isbn": "978-0141036144"
   },
   {
@@ -40,7 +41,7 @@
     "zaner": "Román",
     "jazyk": "slovenský",
     "poskodenie": "žiadne",
-    "je_vypozicana": false,
+    "je_vypozicana": true,
     "isbn": "978-0141439518"
   }
 ]
